@@ -1,9 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function GoalsScreen() {
   const [goal, setGoal] = useState('');
   const [goals, setGoals] = useState<string[]>([]);
+  const systemColorScheme = useColorScheme();
+  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('themeMode');
+      if (storedTheme) {
+        setIsDark(storedTheme === 'dark');
+      } else {
+        setIsDark(systemColorScheme === 'dark');
+      }
+    };
+    // Listen for changes to themeMode in AsyncStorage
+    const interval = setInterval(loadTheme, 500);
+    return () => clearInterval(interval);
+  }, [systemColorScheme]);
+
+  const dynamicStyles = {
+    background: isDark ? styles.darkBackground : styles.lightBackground,
+    text: isDark ? styles.darkText : styles.lightText,
+    input: isDark ? styles.darkInput : styles.lightInput,
+  };
 
   const addGoal = () => {
     if (goal.trim()) {
@@ -18,12 +41,12 @@ export default function GoalsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}> Set Your Goals</Text>
+    <View style={[styles.container, dynamicStyles.background]}>
+      <Text style={[styles.title, dynamicStyles.text]}> Set Your Goals</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, dynamicStyles.input]}
         placeholder="Enter a goal"
-        placeholderTextColor="#999"
+        placeholderTextColor={isDark ? "#ccc" : "#999"}
         value={goal}
         onChangeText={setGoal}
       />
@@ -34,7 +57,7 @@ export default function GoalsScreen() {
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
           <TouchableOpacity onPress={() => removeGoal(index)}>
-            <Text style={styles.goal}>• {item}</Text>
+            <Text style={[styles.goal, dynamicStyles.text]}>• {item}</Text>
           </TouchableOpacity>
         )}
         style={styles.goalList}
@@ -47,7 +70,6 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     padding: 20, 
-    backgroundColor: '#17212C',
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 60, 
@@ -55,19 +77,28 @@ const styles = StyleSheet.create({
   title: { 
     fontSize: 24, 
     fontWeight: 'bold', 
-    color: 'white', 
     marginBottom: 5,
     textAlign: 'center'
   },
   input: {
-    backgroundColor: '#2A2E38',
-    color: 'white',
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
     width: '100%',
     maxWidth: 400,
     textAlign: 'center'
+  },
+  lightBackground: { backgroundColor: '#fff' },
+  darkBackground: { backgroundColor: '#17212C' },
+  lightText: { color: '#222' },
+  darkText: { color: 'white' },
+  lightInput: {
+    backgroundColor: '#fff',
+    color: '#222'
+  },
+  darkInput: {
+    backgroundColor: '#2A2E38',
+    color: 'white'
   },
   goalList: {
     marginTop: 20,
@@ -77,7 +108,6 @@ const styles = StyleSheet.create({
   },
   goal: {
     fontSize: 18,
-    color: 'white',
     marginVertical: 6,
     paddingLeft: 10,
     textAlign: 'center'

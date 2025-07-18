@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FOCUS_TIME = 25 * 60;
 const INITIAL_BREAK_TIME = 5 * 60;
@@ -11,6 +12,22 @@ export default function PomodoroScreen() {
   const [isFocus, setIsFocus] = useState(true);
   const [breakTime, setBreakTime] = useState(INITIAL_BREAK_TIME);
   const intervalRef = useRef<NodeJS.Timer | null>(null);
+
+  const systemColorScheme = useColorScheme();
+  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('themeMode');
+      if (storedTheme) {
+        setIsDark(storedTheme === 'dark');
+      } else {
+        setIsDark(systemColorScheme === 'dark');
+      }
+    };
+    const interval = setInterval(loadTheme, 500);
+    return () => clearInterval(interval);
+  }, [systemColorScheme]);
 
   useEffect(() => {
     if (isRunning) {
@@ -34,7 +51,6 @@ export default function PomodoroScreen() {
         });
       }, 1000);
     }
-
     return () => clearInterval(intervalRef.current!);
   }, [isRunning, isFocus, breakTime]);
 
@@ -54,25 +70,33 @@ export default function PomodoroScreen() {
       .padStart(2, '0')}`;
   };
 
+  const dynamicStyles = {
+    background: isDark ? styles.darkBackground : styles.lightBackground,
+    session: isDark ? styles.darkSession : styles.lightSession,
+    timer: isDark ? styles.darkTimer : styles.lightTimer,
+    button: isDark ? styles.darkButton : styles.lightButton,
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.session}>
+    <View style={[styles.container, dynamicStyles.background]}>
+      <Text style={[styles.session, dynamicStyles.session]}>
         {isFocus ? 'Focus Time' : 'Break Time'}
       </Text>
-      <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
+      <Text style={[styles.timer, dynamicStyles.timer]}>{formatTime(timeLeft)}</Text>
       <View style={styles.buttons}>
         <Button
           title={isRunning ? 'Pause' : 'Start'}
           onPress={() => setIsRunning(!isRunning)}
+          color="#007AFF" 
         />
         <Ionicons
           name={isRunning ? 'pause' : 'play'}
           size={32}
-          color="#555"
+          color={isDark ? "#fff" : "#555"}
           style={{ marginLeft: 10, alignSelf: 'center' }}
           onPress={() => setIsRunning(!isRunning)}
         />
-        <Button title="Reset" onPress={handleReset} />
+        <Button title="Reset" onPress={handleReset} color="#007AFF" /> 
       </View>
     </View>
   );
@@ -80,16 +104,20 @@ export default function PomodoroScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff',
+    flex: 1, justifyContent: 'center', alignItems: 'center',
   },
-  session: {
-    fontSize: 24, marginBottom: 10, color: '#555',
-  },
-  timer: {
-    fontSize: 64, fontWeight: 'bold', marginBottom: 20,
-  },
+  lightBackground: { backgroundColor: '#fff' },
+  darkBackground: { backgroundColor: '#17212C' },
+  session: { fontSize: 24, marginBottom: 10 },
+  lightSession: { color: '#555' },
+  darkSession: { color: '#fff' },
+  timer: { fontSize: 64, fontWeight: 'bold', marginBottom: 20 },
+  lightTimer: { color: '#222' },
+  darkTimer: { color: '#fff' },
   buttons: {
     flexDirection: 'row',
     gap: 20,
   },
+  lightButton: {},
+  darkButton: {},
 });

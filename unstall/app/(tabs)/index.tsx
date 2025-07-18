@@ -11,9 +11,17 @@ export default function Home() {
         <Image source={logo} style={styles.logo} resizeMode="contain" />
       </View>
       <Text style={styles.title}>Welcome to Unstall </Text>
-      <Text style={styles.paragraph}>Your productivity companion</Text>
-      <Link href="/goals" style={styles.link}>Goals</Link>
+      <Text style={styles.paragraph}>
+        Your productivity companion
+      </Text>
+      <Text style={styles.paragraph}>
+        Unstall helps you beat procrastination with a simple Pomodoro timer, goal tracker, and daily progress insights — all in one clean, focused app. Stay on track, one session at a time.
+        {'\n'}
+        {'\n'}
+        Start your journey to better productivity today!
+      </Text>
       <Link href="/pomodoro" style={styles.link}>Start Pomodoro</Link>
+      <Link href="/goals" style={styles.link}>Track your Goals</Link>
       <Link href="/calendar" style={styles.link}>View Calendar</Link>
       <Link href="/profile" style={styles.link}>My Profile</Link>
       <Link href="/settings" style={styles.link}>Settings</Link>
@@ -35,5 +43,5 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: 'bold', color: 'white', marginBottom: 20 },
   link: { fontSize: 18, color: '#007AFF', marginVertical: 10 },
-  paragraph: { fontSize: 16, color: 'white', marginTop: 50, marginBottom: 20 },
+  paragraph: { fontSize: 16, color: 'white', marginTop: 10, marginBottom: 20, textAlign: 'center' },
 });

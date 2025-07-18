@@ -5,7 +5,7 @@ import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
@@ -22,7 +22,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'clock': 'schedule',
   'person': 'person',
-  'bullseye': 'bullseye-arrow', // Use MaterialCommunityIcons for bullseye
+  'bullseye': 'bullseye-arrow', 
+  'gear': 'settings',
 } as IconMapping;
 
 /**
