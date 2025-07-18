@@ -24,6 +24,7 @@ const MAPPING = {
   'person': 'person',
   'bullseye': 'bullseye-arrow', 
   'gear': 'settings',
+  'calendar': 'event', 
 } as IconMapping;
 
 /**
