@@ -3,10 +3,13 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const FOCUS_TIME = 25 * 60;
+const INITIAL_BREAK_TIME = 5 * 60;
 
 export default function PomodoroScreen() {
   const [timeLeft, setTimeLeft] = useState(FOCUS_TIME);
   const [isRunning, setIsRunning] = useState(false);
+  const [isFocus, setIsFocus] = useState(true);
+  const [breakTime, setBreakTime] = useState(INITIAL_BREAK_TIME);
   const intervalRef = useRef<NodeJS.Timer | null>(null);
 
   useEffect(() => {
@@ -16,6 +19,15 @@ export default function PomodoroScreen() {
           if (prev <= 1) {
             clearInterval(intervalRef.current!);
             setIsRunning(false);
+            // Switch between focus and break
+            if (isFocus) {
+              setIsFocus(false);
+              setTimeLeft(breakTime);
+            } else {
+              setIsFocus(true);
+              setTimeLeft(FOCUS_TIME);
+              setBreakTime(prevBreak => prevBreak + 5 * 60); // Increase break by 5 min
+            }
             return 0;
           }
           return prev - 1;
@@ -24,12 +36,14 @@ export default function PomodoroScreen() {
     }
 
     return () => clearInterval(intervalRef.current!);
-  }, [isRunning]);
+  }, [isRunning, isFocus, breakTime]);
 
   const handleReset = () => {
     clearInterval(intervalRef.current!);
     setIsRunning(false);
+    setIsFocus(true);
     setTimeLeft(FOCUS_TIME);
+    setBreakTime(INITIAL_BREAK_TIME);
   };
 
   const formatTime = (seconds: number) => {
@@ -42,7 +56,9 @@ export default function PomodoroScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.session}>Focus Time</Text>
+      <Text style={styles.session}>
+        {isFocus ? 'Focus Time' : 'Break Time'}
+      </Text>
       <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
       <View style={styles.buttons}>
         <Button
