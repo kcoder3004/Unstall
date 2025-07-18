@@ -12,7 +12,7 @@ export default function Home() {
       </View>
       <Text style={styles.title}>Welcome to Unstall </Text>
       <Text style={styles.paragraph}>Your productivity companion</Text>
-      <Link href="/dashboard" style={styles.link}>Dashboard</Link>
+      <Link href="/goals" style={styles.link}>Goals</Link>
       <Link href="/pomodoro" style={styles.link}>Start Pomodoro</Link>
       <Link href="/calendar" style={styles.link}>View Calendar</Link>
       <Link href="/profile" style={styles.link}>My Profile</Link>
