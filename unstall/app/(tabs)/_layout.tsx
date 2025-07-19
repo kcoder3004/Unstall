@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import MaterialIcons from '@expo/vector-icons/build/MaterialIcons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -26,6 +27,15 @@ export default function TabLayout() {
           default: {},
         }),
       }}>
+      <Tabs.Screen
+        name="welcome"
+        options={{
+          title: 'Welcome',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="waving-hand" size={24} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{

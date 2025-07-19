@@ -1,48 +1,85 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Correct logo import for assets/images/logo.png
-const logo = require('../../assets/images/logo.png');
+export default function DashboardScreen() {
+  const systemColorScheme = useColorScheme();
+  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+  const [pomodoroStreak, setPomodoroStreak] = useState(0);
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [goalsCompleted, setGoalsCompleted] = useState(0);
 
-export default function Home() {
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('themeMode');
+      if (storedTheme) {
+        setIsDark(storedTheme === 'dark');
+      } else {
+        setIsDark(systemColorScheme === 'dark');
+      }
+    };
+    const interval = setInterval(loadTheme, 500);
+    return () => clearInterval(interval);
+  }, [systemColorScheme]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const streak = await AsyncStorage.getItem('pomodoroStreak');
+      const sessions = await AsyncStorage.getItem('totalSessions');
+      const goals = await AsyncStorage.getItem('goalsCompleted');
+      setPomodoroStreak(streak ? Number(streak) : 0);
+      setTotalSessions(sessions ? Number(sessions) : 0);
+      setGoalsCompleted(goals ? Number(goals) : 0);
+    };
+    loadStats();
+  }, []);
+
+  const dynamicStyles = {
+    background: isDark ? styles.darkBackground : styles.lightBackground,
+    card: isDark ? styles.darkCard : styles.lightCard,
+    text: isDark ? styles.darkText : styles.lightText,
+    stat: isDark ? styles.darkStat : styles.lightStat,
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image source={logo} style={styles.logo} resizeMode="contain" />
+    <View style={[styles.container, dynamicStyles.background]}>
+      <Text style={[styles.title, dynamicStyles.text]}>Dashboard</Text>
+      <View style={[styles.card, dynamicStyles.card]}>
+        <Text style={[styles.statLabel, dynamicStyles.text]}>Pomodoro Streak</Text>
+        <Text style={[styles.stat, dynamicStyles.stat]}>{pomodoroStreak} days</Text>
       </View>
-      <Text style={styles.title}>Welcome to Unstall </Text>
-      <Text style={styles.paragraph}>
-        Your productivity companion
-      </Text>
-      <Text style={styles.paragraph}>
-        Unstall helps you beat procrastination with a simple Pomodoro timer, goal tracker, and daily progress insights — all in one clean, focused app. Stay on track, one session at a time.
-        {'\n'}
-        {'\n'}
-        Start your journey to better productivity today!
-      </Text>
-      <Link href="/dashboard" style={styles.link}>Go to Dashboard</Link>
-      <Link href="/pomodoro" style={styles.link}>Start Pomodoro</Link>
-      <Link href="/goals" style={styles.link}>Track your Goals</Link>
-      <Link href="/calendar" style={styles.link}>View Calendar</Link>
-      <Link href="/profile" style={styles.link}>My Profile</Link>
-      <Link href="/settings" style={styles.link}>Settings</Link>
+      <View style={[styles.card, dynamicStyles.card]}>
+        <Text style={[styles.statLabel, dynamicStyles.text]}>Total Sessions</Text>
+        <Text style={[styles.stat, dynamicStyles.stat]}>{totalSessions}</Text>
+      </View>
+      <View style={[styles.card, dynamicStyles.card]}>
+        <Text style={[styles.statLabel, dynamicStyles.text]}>Goals Completed</Text>
+        <Text style={[styles.stat, dynamicStyles.stat]}>{goalsCompleted}</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#17212C' },
-  logoContainer: {
-    position: 'absolute',
-    top: 5,
-    left: 20,
-    zIndex: 1,
+  container: { flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 32 },
+  card: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 18,
+    alignItems: 'center',
+    elevation: 2,
   },
-  logo: {
-    width: 144,
-    height: 144,
-  },
-  title: { fontSize: 24, fontWeight: 'bold', color: 'white', marginBottom: 2 },
-  link: { fontSize: 18, color: '#007AFF', marginVertical: 10 },
-  paragraph: { fontSize: 16, color: 'white', marginTop: 10, marginBottom: 20, textAlign: 'center' },
+  statLabel: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  stat: { fontSize: 28, fontWeight: 'bold' },
+  lightBackground: { backgroundColor: '#fff' },
+  darkBackground: { backgroundColor: '#17212C' },
+  lightCard: { backgroundColor: '#f6f6f6' },
+  darkCard: { backgroundColor: '#222' },
+  lightText: { color: '#222' },
+  darkText: { color: '#fff' },
+  lightStat: { color: '#000' },
+  darkStat: { color: '#00ff00' },
 });

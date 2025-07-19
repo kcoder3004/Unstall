@@ -1,10 +1,10 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
@@ -22,10 +22,11 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'clock': 'schedule',
   'person': 'person',
-  'bullseye': 'bullseye-arrow', 
+  'bullseye': 'bullseye-arrow',
   'gear': 'settings',
-  'calendar': 'event', 
-} as IconMapping;
+  'calendar': 'event',
+  'waving-hand': 'hand-wave', // Use MaterialCommunityIcons "hand-wave"
+} as const;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -38,15 +39,16 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name: keyof typeof MAPPING;
   size?: number;
-  color: string | OpaqueColorValue;
-  style?: StyleProp<TextStyle>;
-  weight?: SymbolWeight;
+  color: string;
+  style?: any;
 }) {
   if (name === 'bullseye') {
-    // Use MaterialCommunityIcons for the bullseye icon
     return <MaterialCommunityIcons name="bullseye-arrow" size={size} color={color} style={style} />;
   }
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  if (name === 'waving-hand') {
+    return <MaterialCommunityIcons name="hand-wave" size={size} color={color} style={style} />;
+  }
+  return <MaterialIcons name={MAPPING[name]} size={size} color={color} style={style} />;
 }
