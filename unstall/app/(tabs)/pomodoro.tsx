@@ -3,31 +3,49 @@ import { View, Text, Button, StyleSheet, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FOCUS_TIME = 25 * 60;
-const INITIAL_BREAK_TIME = 5 * 60;
-
 export default function PomodoroScreen() {
-  const [timeLeft, setTimeLeft] = useState(FOCUS_TIME);
+  const [focusMinutes, setFocusMinutes] = useState(25);
+  const [breakMinutes, setBreakMinutes] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
-  const [breakTime, setBreakTime] = useState(INITIAL_BREAK_TIME);
   const intervalRef = useRef<NodeJS.Timer | null>(null);
 
   const systemColorScheme = useColorScheme();
   const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
 
+  // Load theme and durations from AsyncStorage
   useEffect(() => {
-    const loadTheme = async () => {
+    const loadSettings = async () => {
       const storedTheme = await AsyncStorage.getItem('themeMode');
       if (storedTheme) {
         setIsDark(storedTheme === 'dark');
       } else {
         setIsDark(systemColorScheme === 'dark');
       }
+      const storedFocus = await AsyncStorage.getItem('focusMinutes');
+      const storedBreak = await AsyncStorage.getItem('breakMinutes');
+      if (storedFocus && !isNaN(Number(storedFocus))) {
+        setFocusMinutes(Number(storedFocus));
+      }
+      if (storedBreak && !isNaN(Number(storedBreak))) {
+        setBreakMinutes(Number(storedBreak));
+      }
     };
-    const interval = setInterval(loadTheme, 500);
+    loadSettings();
+    const interval = setInterval(loadSettings, 500);
     return () => clearInterval(interval);
   }, [systemColorScheme]);
+
+  // Update timer when focusMinutes changes and not running
+  useEffect(() => {
+    if (!isRunning && isFocus) {
+      setTimeLeft(focusMinutes * 60);
+    }
+    if (!isRunning && !isFocus) {
+      setTimeLeft(breakMinutes * 60);
+    }
+  }, [focusMinutes, breakMinutes, isFocus, isRunning]);
 
   useEffect(() => {
     if (isRunning) {
@@ -39,27 +57,24 @@ export default function PomodoroScreen() {
             // Switch between focus and break
             if (isFocus) {
               setIsFocus(false);
-              setTimeLeft(breakTime);
+              return breakMinutes * 60;
             } else {
               setIsFocus(true);
-              setTimeLeft(FOCUS_TIME);
-              setBreakTime(prevBreak => prevBreak + 5 * 60); // Increase break by 5 min
+              return focusMinutes * 60;
             }
-            return 0;
           }
           return prev - 1;
         });
       }, 1000);
     }
     return () => clearInterval(intervalRef.current!);
-  }, [isRunning, isFocus, breakTime]);
+  }, [isRunning, isFocus, breakMinutes, focusMinutes]);
 
   const handleReset = () => {
     clearInterval(intervalRef.current!);
     setIsRunning(false);
     setIsFocus(true);
-    setTimeLeft(FOCUS_TIME);
-    setBreakTime(INITIAL_BREAK_TIME);
+    setTimeLeft(focusMinutes * 60);
   };
 
   const formatTime = (seconds: number) => {
@@ -87,7 +102,7 @@ export default function PomodoroScreen() {
         <Button
           title={isRunning ? 'Pause' : 'Start'}
           onPress={() => setIsRunning(!isRunning)}
-          color="#007AFF" 
+          color="#007AFF"
         />
         <Ionicons
           name={isRunning ? 'pause' : 'play'}
@@ -96,7 +111,7 @@ export default function PomodoroScreen() {
           style={{ marginLeft: 10, alignSelf: 'center' }}
           onPress={() => setIsRunning(!isRunning)}
         />
-        <Button title="Reset" onPress={handleReset} color="#007AFF" /> 
+        <Button title="Reset" onPress={handleReset} color="#007AFF" />
       </View>
     </View>
   );

@@ -20,6 +20,7 @@ export default function Home() {
         {'\n'}
         Start your journey to better productivity today!
       </Text>
+      <Link href="/dashboard" style={styles.link}>Go to Dashboard</Link>
       <Link href="/pomodoro" style={styles.link}>Start Pomodoro</Link>
       <Link href="/goals" style={styles.link}>Track your Goals</Link>
       <Link href="/calendar" style={styles.link}>View Calendar</Link>
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
     width: 144,
     height: 144,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: 'white', marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: 'white', marginBottom: 2 },
   link: { fontSize: 18, color: '#007AFF', marginVertical: 10 },
   paragraph: { fontSize: 16, color: 'white', marginTop: 10, marginBottom: 20, textAlign: 'center' },
 });

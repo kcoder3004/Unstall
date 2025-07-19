@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, TouchableOpacity, StyleSheet, useColorScheme, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  useColorScheme,
+  Modal,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 
@@ -22,6 +32,7 @@ LocaleConfig.defaultLocale = 'en';
 
 export default function CalendarScreen() {
   const [deadlines, setDeadlines] = useState<{ title: string; date: string }[]>([]);
+  const [completedSessions, setCompletedSessions] = useState<string[]>([]); // Pomodoro history
   const [title, setTitle] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,22 +42,21 @@ export default function CalendarScreen() {
   useEffect(() => {
     const loadTheme = async () => {
       const storedTheme = await AsyncStorage.getItem('themeMode');
-      if (storedTheme) {
-        setIsDark(storedTheme === 'dark');
-      } else {
-        setIsDark(systemColorScheme === 'dark');
-      }
+      setIsDark(storedTheme === 'dark' || (storedTheme === null && systemColorScheme === 'dark'));
     };
     const interval = setInterval(loadTheme, 500);
     return () => clearInterval(interval);
   }, [systemColorScheme]);
 
   useEffect(() => {
-    const loadDeadlines = async () => {
-      const saved = await AsyncStorage.getItem('deadlines');
-      if (saved) setDeadlines(JSON.parse(saved));
+    const loadData = async () => {
+      const savedDeadlines = await AsyncStorage.getItem('deadlines');
+      if (savedDeadlines) setDeadlines(JSON.parse(savedDeadlines));
+
+      const savedSessions = await AsyncStorage.getItem('pomodoroHistory');
+      if (savedSessions) setCompletedSessions(JSON.parse(savedSessions));
     };
-    loadDeadlines();
+    loadData();
   }, []);
 
   const addDeadline = async () => {
@@ -66,16 +76,34 @@ export default function CalendarScreen() {
     await AsyncStorage.setItem('deadlines', JSON.stringify(newDeadlines));
   };
 
-  // Mark deadlines on calendar
-  const markedDates = deadlines.reduce((acc, item) => {
-    acc[item.date] = {
+  // Mark deadlines and completed Pomodoro sessions
+  const markedDates: Record<string, any> = {};
+
+  // Mark Pomodoro completions with green dots
+  completedSessions.forEach(date => {
+    markedDates[date] = {
+      ...markedDates[date],
       marked: true,
-      dotColor: '#007AFF',
-      selected: selectedDate === item.date,
-      selectedColor: '#007AFF'
+      dots: [
+        ...(markedDates[date]?.dots || []),
+        { key: 'focus', color: '#34C759' }, // green dot
+      ],
     };
-    return acc;
-  }, {} as Record<string, any>);
+  });
+
+  // Mark deadlines with blue dots
+  deadlines.forEach(({ date }) => {
+    markedDates[date] = {
+      ...markedDates[date],
+      marked: true,
+      dots: [
+        ...(markedDates[date]?.dots || []),
+        { key: 'deadline', color: '#007AFF' }, // blue dot
+      ],
+      selected: selectedDate === date,
+      selectedColor: selectedDate === date ? '#007AFF' : undefined,
+    };
+  });
 
   const dynamicStyles = {
     background: isDark ? styles.darkBackground : styles.lightBackground,
@@ -88,6 +116,7 @@ export default function CalendarScreen() {
     <View style={[styles.container, dynamicStyles.background]}>
       <Text style={[styles.title, dynamicStyles.text]}>Calendar</Text>
       <Calendar
+        markingType="multi-dot"
         markedDates={markedDates}
         onDayPress={day => {
           setSelectedDate(day.dateString);
@@ -97,7 +126,7 @@ export default function CalendarScreen() {
           backgroundColor: isDark ? '#17212C' : '#fff',
           calendarBackground: isDark ? '#17212C' : '#fff',
           dayTextColor: isDark ? '#fff' : '#222',
-          monthTextColor: isDark ? '#007AFF' : '#007AFF',
+          monthTextColor: '#007AFF',
           selectedDayBackgroundColor: '#007AFF',
           selectedDayTextColor: '#fff',
           todayTextColor: '#007AFF',
