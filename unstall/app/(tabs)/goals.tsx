@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     color: '#222'
   },
   darkInput: {
-    backgroundColor: '#2A2E38',
+    backgroundColor: '#487044ff',
     color: 'white'
   },
   goalList: {
