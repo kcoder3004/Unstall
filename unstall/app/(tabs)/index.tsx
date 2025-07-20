@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, useColorScheme, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, useColorScheme, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-export default function DashboardScreen() {
+export default function HomeScreen() {
   const systemColorScheme = useColorScheme();
   const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+
   const [pomodoroStreak, setPomodoroStreak] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
   const [goalsCompleted, setGoalsCompleted] = useState(0);
@@ -39,9 +40,13 @@ export default function DashboardScreen() {
     const fetchQuote = async () => {
       try {
         const res = await axios.get('https://zenquotes.io/api/today');
-        const data = res.data[0];
-        setQuote(data.q);
-        setAuthor(data.a);
+        const data = res.data && Array.isArray(res.data) ? res.data[0] : null;
+        if (data && data.q && data.a) {
+          setQuote(data.q);
+          setAuthor(data.a);
+        } else {
+          throw new Error('Invalid quote format');
+        }
       } catch (err) {
         setQuote('Stay focused and keep pushing forward.');
         setAuthor('Unknown');
@@ -60,9 +65,22 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View style={[styles.container, dynamicStyles.background]}>
+    <ScrollView contentContainerStyle={[styles.container, dynamicStyles.background]}>
       <Text style={[styles.title, dynamicStyles.text]}>Dashboard</Text>
 
+      {/* Quote of the Day */}
+      <View style={[styles.quoteCard, dynamicStyles.card]}>
+        {loadingQuote ? (
+          <ActivityIndicator size="small" color={isDark ? '#fff' : '#000'} />
+        ) : (
+          <>
+            <Text style={[styles.quote, dynamicStyles.text]}>"{quote}"</Text>
+            <Text style={[styles.author, dynamicStyles.text]}>— {author}</Text>
+          </>
+        )}
+      </View>
+
+      {/* Stats */}
       <View style={[styles.card, dynamicStyles.card]}>
         <Text style={[styles.statLabel, dynamicStyles.text]}>Pomodoro Streak</Text>
         <Text style={[styles.stat, dynamicStyles.stat]}>{pomodoroStreak} days</Text>
@@ -77,25 +95,40 @@ export default function DashboardScreen() {
         <Text style={[styles.statLabel, dynamicStyles.text]}>Goals Completed</Text>
         <Text style={[styles.stat, dynamicStyles.stat]}>{goalsCompleted}</Text>
       </View>
-
-      <View style={[styles.quoteCard, dynamicStyles.card]}>
-        <Text style={[styles.statLabel, dynamicStyles.text]}>Quote of the Day</Text>
-        {loadingQuote ? (
-          <ActivityIndicator size="small" color="#007AFF" />
-        ) : (
-          <>
-            <Text style={[styles.quote, dynamicStyles.text]}>"{quote}"</Text>
-            <Text style={[styles.author, dynamicStyles.text]}>— {author}</Text>
-          </>
-        )}
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 32 },
+  container: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+  quoteCard: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+    elevation: 3,
+  },
+  quote: {
+    fontSize: 18,
+    fontStyle: 'italic',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  author: {
+    fontSize: 16,
+    textAlign: 'right',
+  },
   card: {
     width: '90%',
     maxWidth: 400,
@@ -105,19 +138,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 2,
   },
-  quoteCard: {
-    width: '90%',
-    maxWidth: 400,
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 20,
-    alignItems: 'center',
+  statLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  statLabel: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  stat: { fontSize: 28, fontWeight: 'bold' },
-  quote: { fontSize: 16, fontStyle: 'italic', textAlign: 'center', marginBottom: 6 },
-  author: { fontSize: 14, textAlign: 'center' },
-
+  stat: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
   lightBackground: { backgroundColor: '#fff' },
   darkBackground: { backgroundColor: '#17212C' },
   lightCard: { backgroundColor: '#f6f6f6' },

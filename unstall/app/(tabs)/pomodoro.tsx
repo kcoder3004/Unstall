@@ -14,7 +14,6 @@ export default function PomodoroScreen() {
   const systemColorScheme = useColorScheme();
   const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
 
-  // Load theme and durations from AsyncStorage
   useEffect(() => {
     const loadSettings = async () => {
       const storedTheme = await AsyncStorage.getItem('themeMode');
@@ -23,6 +22,7 @@ export default function PomodoroScreen() {
       } else {
         setIsDark(systemColorScheme === 'dark');
       }
+
       const storedFocus = await AsyncStorage.getItem('focusMinutes');
       const storedBreak = await AsyncStorage.getItem('breakMinutes');
       if (storedFocus && !isNaN(Number(storedFocus))) {
@@ -32,12 +32,12 @@ export default function PomodoroScreen() {
         setBreakMinutes(Number(storedBreak));
       }
     };
+
     loadSettings();
     const interval = setInterval(loadSettings, 500);
     return () => clearInterval(interval);
   }, [systemColorScheme]);
 
-  // Update timer when focusMinutes changes and not running
   useEffect(() => {
     if (!isRunning && isFocus) {
       setTimeLeft(focusMinutes * 60);
@@ -54,8 +54,8 @@ export default function PomodoroScreen() {
           if (prev <= 1) {
             clearInterval(intervalRef.current!);
             setIsRunning(false);
-            // Switch between focus and break
             if (isFocus) {
+              updatePomodoroStats(); // ✅ Update streak/session
               setIsFocus(false);
               return breakMinutes * 60;
             } else {
@@ -67,8 +67,35 @@ export default function PomodoroScreen() {
         });
       }, 1000);
     }
+
     return () => clearInterval(intervalRef.current!);
   }, [isRunning, isFocus, breakMinutes, focusMinutes]);
+
+  const updatePomodoroStats = async () => {
+    const today = new Date().toDateString();
+    const lastDate = await AsyncStorage.getItem('lastCompletedDate');
+    const streakRaw = await AsyncStorage.getItem('pomodoroStreak');
+    const sessionsRaw = await AsyncStorage.getItem('totalSessions');
+
+    let streak = streakRaw ? Number(streakRaw) : 0;
+    let sessions = sessionsRaw ? Number(sessionsRaw) : 0;
+
+    if (lastDate === today) {
+      sessions += 1;
+    } else {
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (lastDate === yesterday) {
+        streak += 1;
+      } else {
+        streak = 1;
+      }
+      sessions += 1;
+    }
+
+    await AsyncStorage.setItem('lastCompletedDate', today);
+    await AsyncStorage.setItem('pomodoroStreak', streak.toString());
+    await AsyncStorage.setItem('totalSessions', sessions.toString());
+  };
 
   const handleReset = () => {
     clearInterval(intervalRef.current!);
