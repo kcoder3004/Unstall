@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deadlineTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
   },
   deadlineDate: {
