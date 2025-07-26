@@ -28,12 +28,11 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, dynamicStyles.background]}>
-      <Text style={[styles.title, dynamicStyles.title]}>Profile</Text>
+      <Text style={[styles.title, dynamicStyles.title]}>Profile</Text>/*
       <View style={styles.infoBox}>
         <Text style={[styles.label, dynamicStyles.label]}>Name:</Text>
         <Text style={[styles.value, dynamicStyles.value]}>Jane Doe</Text>
-      </View>
-      <View style={styles.infoBox}>
+      </View>    <View style={styles.infoBox}>
         <Text style={[styles.label, dynamicStyles.label]}>Email:</Text>
         <Text style={[styles.value, dynamicStyles.value]}>jane.doe@email.com</Text>
       </View>

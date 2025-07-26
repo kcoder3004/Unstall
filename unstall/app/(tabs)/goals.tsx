@@ -31,7 +31,7 @@ export default function GoalsScreen() {
   const addGoal = () => {
     if (goal.trim()) {
       setGoals([...goals, goal]);
-      setGoal('');
+      setGoal('');                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     }
   };
 

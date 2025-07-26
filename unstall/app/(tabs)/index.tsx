@@ -100,6 +100,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  
   container: {
     padding: 24,
     alignItems: 'center',

@@ -115,7 +115,7 @@ export default function CalendarScreen() {
   return (
     <View style={[styles.container, dynamicStyles.background]}>
       <Text style={[styles.title, dynamicStyles.text]}>Calendar</Text>
-      <Calendar
+      <Calendar 
         markingType="multi-dot"
         markedDates={markedDates}
         onDayPress={day => {
@@ -242,3 +242,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+ 
